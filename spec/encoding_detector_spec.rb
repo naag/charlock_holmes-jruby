@@ -82,6 +82,7 @@ describe CharlockHolmes::EncodingDetector do
         ISO-8859-5
         ISO-8859-6
         ISO-8859-7
+        ISO-8859-8-I
         ISO-8859-8
         windows-1251
         windows-1256
