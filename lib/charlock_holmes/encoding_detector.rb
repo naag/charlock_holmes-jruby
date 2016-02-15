@@ -36,6 +36,14 @@ module CharlockHolmes
       end
     end
 
+    def strip_tags=(value)
+      @detector.enableInputFilter(value)
+    end
+
+    def strip_tags
+      @detector.inputFilterEnabled
+    end
+
     class << self
       def detect(string, hint = nil)
         new.detect(string, hint)
