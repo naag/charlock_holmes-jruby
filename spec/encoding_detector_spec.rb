@@ -6,56 +6,92 @@ require 'charlock_holmes'
 describe CharlockHolmes::EncodingDetector do
   subject { CharlockHolmes::EncodingDetector }
 
-  describe "#detect" do
-    it "should detect encoding of string" do
-      detected = subject.detect 'hello'
-      detected[:encoding].should == 'ISO-8859-1'
+  context "static access" do
+    describe "#detect" do
+      it "should detect encoding of string" do
+        detected = subject.detect 'hello'
+        detected[:encoding].should == 'ISO-8859-1'
+      end
+
+      it "should accept encoding hint" do
+        detected = subject.detect 'hello', 'UTF-8'
+        detected[:encoding].should == 'ISO-8859-1'
+      end
+
+      MAPPING = [
+        ['repl2.cljs', 'ISO-8859-1'],
+        ['core.rkt', 'UTF-8'],
+        ['cl-messagepack.lisp', 'ISO-8859-1'],
+        ['TwigExtensionsDate.es.yml', 'UTF-8'],
+        ['AnsiGraph.psm1', 'UTF-16LE'],
+        ['laholator.py', 'UTF-8'],
+        ['mingpao.html', 'Big5'],
+        ['shift_jis.html', 'Shift_JIS']
+      ]
+
+      MAPPING.each do |mapping|
+        file, encoding, type = mapping
+        it "should detect encoding of test file #{file}" do
+          path = File.expand_path "../fixtures/#{file}", __FILE__
+          content = File.read path
+          guessed = subject.detect content
+          guessed[:encoding].should == encoding
+          content.force_encoding guessed[:encoding]
+          content.valid_encoding?.should be_true
+        end
+      end
     end
 
-    it "should accept encoding hint" do
-      detected = subject.detect 'hello', 'UTF-8'
-      detected[:encoding].should == 'ISO-8859-1'
-    end
+    describe "#detect_all" do
+      it "should returns array of possible matches" do
+        detected_list = subject.detect_all 'test'
+        detected_list.should be_a(Array)
 
-    MAPPING = [
-      ['repl2.cljs', 'ISO-8859-1'],
-      ['core.rkt', 'UTF-8'],
-      ['cl-messagepack.lisp', 'ISO-8859-1'],
-      ['TwigExtensionsDate.es.yml', 'UTF-8'],
-      ['AnsiGraph.psm1', 'UTF-16LE'],
-      ['laholator.py', 'UTF-8'],
-      ['mingpao.html', 'Big5'],
-      ['shift_jis.html', 'Shift_JIS']
-    ]
+        encoding_list = detected_list.map {|d| d[:encoding] }.sort
+        encoding_list.should == ['ISO-8859-1', 'ISO-8859-2', 'UTF-8']
+      end
 
-    MAPPING.each do |mapping|
-      file, encoding, type = mapping
-      it "should detect encoding of test file #{file}" do
-        path = File.expand_path "../fixtures/#{file}", __FILE__
-        content = File.read path
-        guessed = subject.detect content
-        guessed[:encoding].should == encoding
-        content.force_encoding guessed[:encoding]
-        content.valid_encoding?.should be_true
+      it "should accept encoding hint" do
+        detected_list = subject.detect_all 'test', 'UTF-8'
+        detected_list.should be_a(Array)
+
+        encoding_list = detected_list.map {|d| d[:encoding] }.sort
+        encoding_list.should == ['ISO-8859-1', 'ISO-8859-2', 'UTF-8']
       end
     end
   end
-  
-  describe "#detect_all" do
-    it "should returns array of possible matches" do
-      detected_list = subject.detect_all 'test'
-      detected_list.should be_a(Array)
 
-      encoding_list = detected_list.map {|d| d[:encoding] }.sort
-      encoding_list.should == ['ISO-8859-1', 'ISO-8859-2', 'UTF-8']
+  context "instance access" do
+    let(:detector) { subject.new }
+
+    describe "#detect" do
+      it "should detect encoding of string" do
+        detected = detector.detect 'hello'
+        detected[:encoding].should == 'ISO-8859-1'
+      end
+
+      it "should accept encoding hint" do
+        detected = detector.detect 'hello', 'UTF-8'
+        detected[:encoding].should == 'ISO-8859-1'
+      end
     end
 
-    it "should accept encoding hint" do
-      detected_list = subject.detect_all 'test', 'UTF-8'
-      detected_list.should be_a(Array)
+    describe "#detect_all" do
+      it "should returns array of possible matches" do
+        detected_list = detector.detect_all 'test'
+        detected_list.should be_a(Array)
 
-      encoding_list = detected_list.map {|d| d[:encoding] }.sort
-      encoding_list.should == ['ISO-8859-1', 'ISO-8859-2', 'UTF-8']
+        encoding_list = detected_list.map {|d| d[:encoding] }.sort
+        encoding_list.should == ['ISO-8859-1', 'ISO-8859-2', 'UTF-8']
+      end
+
+      it "should accept encoding hint" do
+        detected_list = detector.detect_all 'test', 'UTF-8'
+        detected_list.should be_a(Array)
+
+        encoding_list = detected_list.map {|d| d[:encoding] }.sort
+        encoding_list.should == ['ISO-8859-1', 'ISO-8859-2', 'UTF-8']
+      end
     end
   end
 

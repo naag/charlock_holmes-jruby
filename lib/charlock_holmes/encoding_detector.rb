@@ -6,49 +6,48 @@ java_import 'com.ibm.icu.text.CharsetDetector'
 java_import 'java.io.ByteArrayInputStream'
 
 module CharlockHolmes
-  module EncodingDetector
-    extend self
+  class EncodingDetector
+    def initialize
+      @detector = CharsetDetector.new
+      @detector
+    end
 
-    def detect(string, hint=nil)
-      detector = create_detector(string, hint)
+    def detect(string, hint = nil)
+      @detector.setText(ByteArrayInputStream.new(string.to_java_bytes))
+      @detector.setDeclaredEncoding(hint)
 
       begin
-        if charset_match = detector.detect()
-          charset_match.to_hash
-        else
-          nil
-        end
+        match = @detector.detect
+        match ? match.to_hash : nil
       rescue
         nil
       end
     end
 
-    def detect_all(string, hint=nil)
-      detector = create_detector(string, hint)
+    def detect_all(string, hint = nil)
+      @detector.setText(ByteArrayInputStream.new(string.to_java_bytes))
+      @detector.setDeclaredEncoding(hint)
 
       begin
-        if charset_matchs = detector.detectAll()
-          charset_matchs.collect {|match| match.to_hash }
-        else
-          nil
-        end
+        matches = @detector.detectAll
+        matches.map(&:to_hash)
       rescue
         nil
       end
     end
 
-    def all_detectable_charsets
-      CharsetDetector.getAllDetectableCharsets().to_a
-    end
+    class << self
+      def detect(string, hint = nil)
+        new.detect(string, hint)
+      end
 
-    private
-    def create_detector(string, hint=nil)
-      detector = CharsetDetector.new
-      detector.setText ByteArrayInputStream.new(string.to_java_bytes)
-      detector.setDeclaredEncoding(hint)
-      detector
+      def detect_all(string, hint = nil)
+        new.detect_all(string, hint)
+      end
+
+      def all_detectable_charsets
+        CharsetDetector.getAllDetectableCharsets.to_a
+      end
     end
   end
-
-
 end
