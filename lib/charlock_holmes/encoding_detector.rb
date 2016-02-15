@@ -17,12 +17,8 @@ module CharlockHolmes
       @detector.setText(ByteArrayInputStream.new(string.to_java_bytes))
       @detector.setDeclaredEncoding(hint)
 
-      begin
-        match = @detector.detect
-        match ? match.to_hash : nil
-      rescue
-        nil
-      end
+      match = @detector.detect
+      match ? match.to_hash : nil
     end
 
     def detect_all(string, hint = nil)
@@ -30,12 +26,8 @@ module CharlockHolmes
       @detector.setText(ByteArrayInputStream.new(string.to_java_bytes))
       @detector.setDeclaredEncoding(hint)
 
-      begin
-        matches = @detector.detectAll
-        matches.map(&:to_hash)
-      rescue
-        nil
-      end
+      matches = @detector.detectAll
+      matches.map(&:to_hash)
     end
 
     def strip_tags=(value)
