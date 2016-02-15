@@ -13,6 +13,7 @@ module CharlockHolmes
     end
 
     def detect(string, hint = nil)
+      return unless valid_input(string)
       @detector.setText(ByteArrayInputStream.new(string.to_java_bytes))
       @detector.setDeclaredEncoding(hint)
 
@@ -25,6 +26,7 @@ module CharlockHolmes
     end
 
     def detect_all(string, hint = nil)
+      return unless valid_input(string)
       @detector.setText(ByteArrayInputStream.new(string.to_java_bytes))
       @detector.setDeclaredEncoding(hint)
 
@@ -42,6 +44,12 @@ module CharlockHolmes
 
     def strip_tags
       @detector.inputFilterEnabled
+    end
+
+    private
+
+    def valid_input(string)
+      string.is_a?(String)
     end
 
     class << self
